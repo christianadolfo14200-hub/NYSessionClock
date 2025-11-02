@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NY Session Clock</title>
+<style>
+  body {
+    background-color: #000;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    padding-top: 50px;
+  }
+
+  h1 {
+    font-size: 2rem;
+    color: #00ff99;
+    margin-bottom: 10px;
+  }
+
+  #time {
+    font-size: 2.5rem;
+    color: #ffffff;
+    margin: 10px 0;
+  }
+
+  #date {
+    font-size: 1.2rem;
+    color: #aaa;
+  }
+
+  #status {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 20px;
+  }
+
+  #countdown {
+    font-size: 1.2rem;
+    color: #ccc;
+    margin-top: 10px;
+  }
+
+  .open {
+    color: #00ff99;
+  }
+
+  .closed {
+    color: #ff0055;
+  }
+</style>
+</head>
+<body>
+
+n  <h1>🗽 New York Session</h1>
+  <div id="date"></div>
+  <div id="time"></div>
+  <div id="status"></div>
+  <div id="countdown"></div>
+
+<script>
+function updateClock() {
+  const now = new Date();
+
+  // Convert to EST/EDT (New York)
+  const estTime = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
+  const hours = estTime.getHours();
+  const minutes = estTime.getMinutes();
+  const seconds = estTime.getSeconds();
+
+  // Format time
+  const timeString = estTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  document.getElementById("time").innerText = timeString;
+
+  // Format date
+  const dateString = estTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  document.getElementById("date").innerText = dateString;
+
+  // NY session hours
+  const openHour = 9;
+  const openMinute = 30;
+  const closeHour = 16;
+  const closeMinute = 0;
+
+  let statusText, countdownText, statusClass;
+
+  const openTime = new Date(estTime);
+  openTime.setHours(openHour, openMinute, 0, 0);
+
+  const closeTime = new Date(estTime);
+  closeTime.setHours(closeHour, closeMinute, 0, 0);
+
+  if (estTime >= openTime && estTime < closeTime) {
+    statusText = "🟢 OPEN";
+    statusClass = "open";
+
+    const diff = closeTime - estTime;
+    const h = Math.floor(diff / (1000 * 60 * 60));
+    const m = Math.floor((diff / (1000 * 60)) % 60);
+    countdownText = `Closes in: ${h}h ${m}m`;
+  } else {
+    statusText = "🔴 CLOSED";
+    statusClass = "closed";
+
+    // Calculate next open (next calendar day at 9:30)
+    let nextOpen = new Date(estTime);
+    if (estTime >= closeTime) {
+      nextOpen.setDate(estTime.getDate() + 1);
+    }
+    nextOpen.setHours(openHour, openMinute, 0, 0);
+    const diff = nextOpen - estTime;
+    const h = Math.floor(diff / (1000 * 60 * 60));
+    const m = Math.floor((diff / (1000 * 60)) % 60);
+    countdownText = `Opens in: ${h}h ${m}m`;
+  }
+
+  document.getElementById("status").innerText = `Market Status: ${statusText}`;
+  document.getElementById("status").className = statusClass;
+  document.getElementById("countdown").innerText = countdownText;
+}
+
+// Update every second
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+
+</body>
+</html>
